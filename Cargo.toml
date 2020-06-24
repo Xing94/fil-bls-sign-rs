@@ -1,0 +1,22 @@
+[package]
+name = "fil-bls-sign-rs"
+version = "0.1.0"
+authors = ["Xing94 <1115119438@qq.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target.'cfg(target_os="android")'.dependencies]
+jni = { version = "0.16.0", default-features = false }
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+bls-signatures = "0.6.0"
+log = "0.4.7"
+rand = "0.7"
+rand_chacha = "0.2.1"
+hex = "0.4.2"
+rayon = "1"
+libc = "0.2.58"
