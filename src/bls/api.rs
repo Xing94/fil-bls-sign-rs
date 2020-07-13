@@ -376,11 +376,22 @@ mod tests {
     fn to_pubilc_Key() {
         unsafe {
             // let private_key = "4c279adb09ad7bad4f9f83b52c9faf373c7d19dc6b9d8d02075463d181ea9f05";
-            let private_key = "6f6007d0d59fc793378e2c1261bc41226286c0c0861723e1f815602a7cd33401";
-            let sign = (*fil_private_key_public_key(hex::decode(private_key).unwrap().as_ptr())).public_key.inner;
-            let output = from_raw_parts(&sign[0], PUBLIC_KEY_BYTES);
+            let private_key = "4adf1d40754a8c0e80e46b0ec0c2aaa65f9c9e61a2dfe8b37d9192bdc6ec8c8b";
+            let private_key = "我是说个";
+            let decode_private_key = catch_unwind(|| {
+                hex::decode(private_key)
+            }).unwrap();
 
-            println!("{}", hex::encode(output));
+            if decode_private_key.is_ok() {
+                let sign = (*fil_private_key_public_key(decode_private_key.unwrap().as_ptr())).public_key.inner;
+                let output = from_raw_parts(&sign[0], PUBLIC_KEY_BYTES);
+
+                println!("{}", hex::encode(output));
+            } else {
+                println!("{}", "这是一个错误啊");
+            }
+
+
         }
     }
 

@@ -14,6 +14,7 @@ use std::fs::copy;
 use std::ptr::null;
 use crate::bls::types::{fil_destroy_private_key_sign_response, fil_destroy_hash_response, fil_HashResponse};
 use bls_signatures::{PrivateKey, Serialize};
+use std::panic::catch_unwind;
 
 
 #[no_mangle]
@@ -42,14 +43,24 @@ pub unsafe extern "system" fn Java_com_lxx_nativerust_FilecoinBlsSignUtil_filPri
     let private_key_j_str = env.get_string(private_key_hex).unwrap();
     let private_key_cstr = private_key_j_str.as_ref();
     private_key_j_str.as_ptr();
-    let raw_private_key_ptr: *const u8 = hex::decode(private_key_cstr.to_bytes()).unwrap().as_ptr();
 
-    let public_key = (*fil_private_key_public_key(raw_private_key_ptr)).public_key.inner;
+    let decode_private_key = catch_unwind(|| {
+        hex::decode(private_key_cstr.to_bytes())
+    }).unwrap();
 
-    let out_byte = from_raw_parts(&public_key[0], PUBLIC_KEY_BYTES);
+    let output;
 
-    let output = env.new_string(hex::encode(out_byte)).expect("Couldn't create java string!");
-    // Finally, extract the raw pointer to return.
+    if decode_private_key.is_ok() {
+        let raw_private_key_ptr: *const u8 = decode_private_key.unwrap().as_ptr();
+
+        let public_key = (*fil_private_key_public_key(raw_private_key_ptr)).public_key.inner;
+
+        let out_byte = from_raw_parts(&public_key[0], PUBLIC_KEY_BYTES);
+
+        output = env.new_string(hex::encode(out_byte)).expect("Couldn't create java string!");
+    } else {
+        output = env.new_string("000000").expect("Couldn't create java string!");
+    }
 
     output.into_inner()
 }
@@ -62,29 +73,40 @@ pub unsafe extern "system" fn Java_com_lxx_nativerust_FilecoinBlsSignUtil_filPri
                                                                                                         class: JClass,
                                                                                                         private_key_seed_hex: JString)
                                                                                                         -> jstring {
-    let private_key_j_str = env.get_string(private_key_seed_hex).unwrap();
-    let private_key_cstr = private_key_j_str.as_ref();
-    private_key_j_str.as_ptr();
-    let raw_private_key_ptr = hex::decode(private_key_cstr.to_bytes()).unwrap();
+    let private_key_seed_j_str = env.get_string(private_key_seed_hex).unwrap();
+    let private_key_seed_cstr = private_key_seed_j_str.as_ref();
+    private_key_seed_cstr.as_ptr();
 
-    let mut seed_array: [u8; PRIVATE_KEY_BYTES] = [0; PRIVATE_KEY_BYTES];
+    let decode_private_key = catch_unwind(|| {
+        hex::decode(private_key_seed_cstr.to_bytes())
+    }).unwrap();
 
-    for index in 0..raw_private_key_ptr.as_slice().len() {
-        if index >= seed_array.len() {
-            break;
+    let output;
+
+    if decode_private_key.is_ok() {
+        let raw_private_key_ptr = decode_private_key.unwrap();
+
+        let mut seed_array: [u8; PRIVATE_KEY_BYTES] = [0; PRIVATE_KEY_BYTES];
+
+        for index in 0..raw_private_key_ptr.as_slice().len() {
+            if index >= seed_array.len() {
+                break;
+            }
+            seed_array[index] = raw_private_key_ptr.as_slice()[index];
         }
-        seed_array[index] = raw_private_key_ptr.as_slice()[index];
+        raw_private_key_ptr.as_ptr();
+        let seed_32array = types::fil_32ByteArray {
+            inner: seed_array,
+        };
+        let private_key = (*fil_private_key_generate_with_seed(seed_32array)).private_key.inner;
+
+        let out_byte = from_raw_parts(&private_key[0], PRIVATE_KEY_BYTES);
+
+        output = env.new_string(hex::encode(out_byte)).expect("Couldn't create java string!");
+    } else {
+        output = env.new_string("000000").expect("Couldn't create java string!");
     }
-    raw_private_key_ptr.as_ptr();
-    let seed_32array = types::fil_32ByteArray {
-        inner: seed_array,
-    };
-    let private_key = (*fil_private_key_generate_with_seed(seed_32array)).private_key.inner;
 
-    let out_byte = from_raw_parts(&private_key[0], PRIVATE_KEY_BYTES);
-
-    let output = env.new_string(hex::encode(out_byte)).expect("Couldn't create java string!");
-    // Finally, extract the raw pointer to return.
     output.into_inner()
 }
 
@@ -101,15 +123,31 @@ pub unsafe extern "system" fn Java_com_lxx_nativerust_FilecoinBlsSignUtil_filPri
     let private_key_cstr = private_key_j_str.as_ref();
 
     let message = env.get_string(message_hex).unwrap();
-    let sigmsg = hex::decode(message.as_ref().to_bytes()).unwrap();
 
-    let msgu = sigmsg.as_ptr();
+    let decode_private_key = catch_unwind(|| {
+        hex::decode(private_key_cstr.to_bytes())
+    }).unwrap();
 
-    let sign = (*fil_private_key_sign(
-        hex::decode(private_key_cstr.to_bytes()).unwrap().as_ptr(),
-        msgu,
-        sigmsg.len())).signature.inner;
+    let decode_sign_msg = catch_unwind(|| {
+        hex::decode(message.as_ref().to_bytes())
+    }).unwrap();
 
-    let output = env.new_string(hex::encode(sign.as_ref())).expect("Couldn't create java string!");
+    let output;
+
+    if decode_private_key.is_ok() && decode_sign_msg.is_ok() {
+        let sign_msg = decode_sign_msg.unwrap();
+
+        let msgu = sign_msg.as_ptr();
+
+        let sign = (*fil_private_key_sign(
+            decode_private_key.unwrap().as_ptr(),
+            msgu,
+            sign_msg.len())).signature.inner;
+
+        output = env.new_string(hex::encode(sign.as_ref())).expect("Couldn't create java string!");
+    } else {
+        output = env.new_string("000000").expect("Couldn't create java string!");
+    }
+
     output.into_inner()
 }
