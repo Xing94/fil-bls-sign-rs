@@ -9,4 +9,4 @@ clippy::result_expect_used,
 )]
 
 pub mod bls;
-// pub mod android;
+pub mod android;
