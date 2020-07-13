@@ -14,6 +14,7 @@ use rayon::prelude::*;
 
 use crate::bls::types;
 use types::fil_32ByteArray;
+use std::panic::catch_unwind;
 
 pub const SIGNATURE_BYTES: usize = 96;
 pub const PRIVATE_KEY_BYTES: usize = 32;
@@ -328,24 +329,32 @@ pub unsafe extern "C" fn fil_private_key_public_key(
     raw_private_key_ptr: *const u8,
 ) -> *mut types::fil_PrivateKeyPublicKeyResponse {
     let private_key_slice = from_raw_parts(raw_private_key_ptr, PRIVATE_KEY_BYTES);
-    let private_key = try_ffi!(
-        PrivateKey::from_bytes(private_key_slice),
-        std::ptr::null_mut()
-    );
+
+    //私钥错误的时候输出所有为0的public_key
+    let private_key = catch_unwind(|| {
+        PrivateKey::from_bytes(private_key_slice)
+    }).unwrap();
 
     let mut raw_public_key: [u8; PUBLIC_KEY_BYTES] = [0; PUBLIC_KEY_BYTES];
-    private_key
-        .public_key()
-        .write_bytes(&mut raw_public_key.as_mut())
-        .expect("preallocated");
-
-    let response = types::fil_PrivateKeyPublicKeyResponse {
-        public_key: fil_BLSPublicKey {
-            inner: raw_public_key,
-        },
-    };
-
-    Box::into_raw(Box::new(response))
+    if private_key.is_ok() {
+        private_key.unwrap()
+            .public_key()
+            .write_bytes(&mut raw_public_key.as_mut())
+            .expect("preallocated");
+        let response = types::fil_PrivateKeyPublicKeyResponse {
+            public_key: fil_BLSPublicKey {
+                inner: raw_public_key,
+            },
+        };
+        Box::into_raw(Box::new(response))
+    } else {
+        let response = types::fil_PrivateKeyPublicKeyResponse {
+            public_key: fil_BLSPublicKey {
+                inner: raw_public_key,
+            },
+        };
+        Box::into_raw(Box::new(response))
+    }
 }
 
 #[cfg(test)]

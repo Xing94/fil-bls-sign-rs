@@ -1,7 +1,7 @@
 # fil-bls-sign-rs
 ## [FileCoin官方Bls签名地址参考版本：Jun 16, 2020](https://github.com/filecoin-project/filecoin-ffi/tree/master/rust/src/bls)
 ## [Jni](https://docs.rs/jni/0.16.0/jni/) ：也可以在项目文件 [Cargo.toml](./Cargo.toml) 点击jni项目左边进入jni官方介绍
-## [Android交叉编译mac配置](https://mozilla.github.io/firefox-browser-architecture/experiments/2017-09-21-rust-on-android.html)
+## [Android交叉编译mac配置](./RustAndroidBuild.MD) 
 ### 本项目是由[filecoin-ffi](https://github.com/filecoin-project/filecoin-ffi/commits/master) 交叉编译版本
 ### 需自己打包Android所需的so包,[cargo-config.toml](./cargo-config.toml) 中的ndk地址为自己本地的ndk地址；
 ### Java项目使用方法：
