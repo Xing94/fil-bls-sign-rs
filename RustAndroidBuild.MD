@@ -1,4 +1,4 @@
-# 如何rust和Android交叉编译
+# Rust如何在Android环境下交叉编译
 ## 参考：[Android交叉编译mac配置](https://mozilla.github.io/firefox-browser-architecture/experiments/2017-09-21-rust-on-android.html) 
 ## 当前操作是在mac系统下执行，windows请注意修改;
 ## 1.首先下载好sdk：
