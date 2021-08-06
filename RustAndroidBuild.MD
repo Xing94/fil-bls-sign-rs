@@ -25,16 +25,16 @@ ${NDK_HOME}/build/tools/make_standalone_toolchain.py --api 26 --arch x86 --insta
 创建`cargo-config.toml`文件，将NDK地址配置在里面，以及cpu架构对应的配置：
 ```.env
 [target.aarch64-linux-android]
-ar = "<project path>/greetings/NDK/arm64/bin/aarch64-linux-android-ar"
-linker = "<project path>/greetings/NDK/arm64/bin/aarch64-linux-android-clang"
+ar = "<project path>/NDK/arm64/bin/aarch64-linux-android-ar"
+linker = "<project path>/NDK/arm64/bin/aarch64-linux-android-clang"
 
 [target.armv7-linux-androideabi]
-ar = "<project path>/greetings/NDK/arm/bin/arm-linux-androideabi-ar"
-linker = "<project path>/greetings/NDK/arm/bin/arm-linux-androideabi-clang"
+ar = "<project path>/NDK/arm/bin/arm-linux-androideabi-ar"
+linker = "<project path>/NDK/arm/bin/arm-linux-androideabi-clang"
 
 [target.i686-linux-android]
-ar = "<project path>/greetings/NDK/x86/bin/i686-linux-android-ar"
-linker = "<project path>/greetings/NDK/x86/bin/i686-linux-android-clang"
+ar = "<project path>/NDK/x86/bin/i686-linux-android-ar"
+linker = "<project path>/NDK/x86/bin/i686-linux-android-clang"
 ```
 ## 5.将cargo交叉编译配置信息添加到cargo目录下：
 复制配置文件
