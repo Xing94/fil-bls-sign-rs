@@ -46,7 +46,7 @@ cp cargo-config.toml ~/.cargo/config
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android
 ```
 ## 6.rust jni配置：
-我们声明需要jni包地址，这意味着我们需要在`Cargo.toml`文件中包含包装箱。打开它，并在`[package]`和`[lib]`声明之间添加以下内容。
+我们声明我们需要 jni 库，这意味着我们需要将该库包含在 Cargo.toml 文件中。打开它，并在`[package]`和`[lib]`声明之间添加以下内容。
 ```.env
 [target.'cfg(target_os="android")'.dependencies]
 jni = { version = "0.16.0", default-features = false }
